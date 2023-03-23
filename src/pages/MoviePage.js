@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import useSWR from "swr";
-import MovieCard from "../components/movie/MovieCard";
-import { fetcher, apiKey } from "../config";
+import MovieCard, { MovieCardSkeleton } from "components/movie/MovieCard";
+import { fetcher, tmdbAPI } from "../config";
 import useDebouce from "../hooks/useDebounce";
 import ReactPaginate from "react-paginate";
 // https://api.themoviedb.org/3/search/movie?api_key=
@@ -12,9 +12,7 @@ const MoviePage = () => {
 
   const [nextPage, setNextPage] = useState(1);
   const [filter, setFilter] = useState("");
-  const [url, setUrl] = useState(
-    `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=${nextPage}`
-  );
+  const [url, setUrl] = useState(tmdbAPI.getMovieList("popular", nextPage));
 
   const filterDebounce = useDebouce(filter, 500);
   const handleChange = (e) => {
@@ -25,13 +23,9 @@ const MoviePage = () => {
   const loading = !data && !error;
   useEffect(() => {
     if (filterDebounce) {
-      setUrl(
-        `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${filterDebounce}&page=${nextPage}`
-      );
+      setUrl(tmdbAPI.getMovieSearch(filterDebounce, nextPage));
     } else {
-      setUrl(
-        `https://api.themoviedb.org/3/movie/popular?api_key=${apiKey}&page=${nextPage}`
-      );
+      setUrl(tmdbAPI.getMovieList("popular", nextPage));
     }
   }, [filterDebounce, nextPage]);
 
@@ -82,8 +76,16 @@ const MoviePage = () => {
           </svg>
         </button>
       </div>
-      {loading && (
+      {/* {loading && (
         <div className="w-10 h-10 rounded-full border-4 border-primary border-t-transparent border-top-4 animate-spin mx-auto"></div>
+      )} */}
+      {loading && (
+        <div className="grid grid-cols-4 gap-10">
+          <MovieCardSkeleton></MovieCardSkeleton>
+          <MovieCardSkeleton></MovieCardSkeleton>
+          <MovieCardSkeleton></MovieCardSkeleton>
+          <MovieCardSkeleton></MovieCardSkeleton>
+        </div>
       )}
       <div className="grid grid-cols-4 gap-10">
         {!loading &&
